@@ -1,1 +1,127 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urus Taxi - Tezkor va Ishonchli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        .yellow-gradient { background: linear-gradient(135deg, #facc15 0%, #eab308 100%); }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-gray-50">
 
+    <nav class="fixed w-full z-50 glass shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-black text-black tracking-tighter">
+                URUS <span class="text-yellow-500">TAXI</span>
+            </div>
+            <div class="hidden md:flex space-x-8 font-medium">
+                <a href="#" class="hover:text-yellow-600 transition">Asosiy</a>
+                <a href="#services" class="hover:text-yellow-600 transition">Xizmatlar</a>
+                <a href="#app" class="hover:text-yellow-600 transition">Ilova</a>
+                <a href="#contact" class="hover:text-yellow-600 transition">Aloqa</a>
+            </div>
+            <button class="bg-black text-white px-6 py-2 rounded-full font-semibold hover:bg-gray-800 transition">
+                Chaqirish
+            </button>
+        </div>
+    </nav>
+
+    <section class="pt-32 pb-20 px-6">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <h1 class="text-5xl md:text-7xl font-bold text-gray-900 leading-tight mb-6">
+                    Sizning qulayligingiz — <span class="text-yellow-500">Bizning maqsad.</span>
+                </h1>
+                <p class="text-lg text-gray-600 mb-8">
+                    Urus Taxi bilan shaharning istalgan nuqtasiga arzon va xavfsiz yetib boring. Birgina tugma va mashina eshigingiz oldida!
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <button class="yellow-gradient text-black px-8 py-4 rounded-2xl font-bold flex items-center shadow-lg hover:scale-105 transition">
+                        <i class="fab fa-apple text-2xl mr-2"></i> App Store
+                    </button>
+                    <button class="bg-black text-white px-8 py-4 rounded-2xl font-bold flex items-center shadow-lg hover:scale-105 transition">
+                        <i class="fab fa-google-play text-2xl mr-2"></i> Google Play
+                    </button>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="absolute -z-10 w-72 h-72 bg-yellow-300 rounded-full blur-3xl opacity-30 top-0 right-0"></div>
+                <img src="https://img.freepik.com/free-photo/yellow-taxi-cab-moving-city-street_23-2148960249.jpg?t=st=1712415123~exp=1712418723~hmac=6b9b8b0e8b0e8b0e8b0e8b0e8b0e8b0e8b0e8b0e8b0e8b0e8b0e8b0e8b0e8b0e" 
+                     alt="Taxi" class="rounded-[2rem] shadow-2xl w-full object-cover">
+            </div>
+        </div>
+    </section>
+
+    <section id="services" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-16">Bizning Tariflar</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="p-8 border-2 border-gray-100 rounded-3xl hover:border-yellow-400 transition group cursor-pointer">
+                    <div class="w-16 h-16 yellow-gradient rounded-2xl flex items-center justify-center mb-6 shadow-md">
+                        <i class="fas fa-car text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Ekonom</h3>
+                    <p class="text-gray-500 mb-4">Hamyonbop narxda tezkor yetib borish uchun eng yaxshi tanlov.</p>
+                    <span class="text-xl font-bold">4 000 so'm <small class="text-sm text-gray-400">/dan</small></span>
+                </div>
+                <div class="p-8 border-2 border-gray-100 rounded-3xl hover:border-yellow-400 transition group cursor-pointer bg-gray-900 text-white">
+                    <div class="w-16 h-16 yellow-gradient rounded-2xl flex items-center justify-center mb-6 shadow-md">
+                        <i class="fas fa-crown text-2xl text-black"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Komfort</h3>
+                    <p class="text-gray-400 mb-4">Yumshoq o'rindiqlar va konditsioner bilan mazali sayohat.</p>
+                    <span class="text-xl font-bold">7 000 so'm <small class="text-sm text-gray-500">/dan</small></span>
+                </div>
+                <div class="p-8 border-2 border-gray-100 rounded-3xl hover:border-yellow-400 transition group cursor-pointer">
+                    <div class="w-16 h-16 yellow-gradient rounded-2xl flex items-center justify-center mb-6 shadow-md">
+                        <i class="fas fa-briefcase text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Biznes</h3>
+                    <p class="text-gray-500 mb-4">Premium klassdagi avtomobillar va yuqori darajadagi xizmat.</p>
+                    <span class="text-xl font-bold">15 000 so'm <small class="text-sm text-gray-400">/dan</small></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6">
+        <div class="max-w-3xl mx-auto glass border border-gray-200 p-10 rounded-[2.5rem] shadow-xl">
+            <h2 class="text-3xl font-bold mb-8 text-center">Hozir <span class="text-yellow-500">Urus</span> buyurtma qiling</h2>
+            <form class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Qayerdan?</label>
+                    <input type="text" placeholder="Manzilni kiriting..." class="w-full p-4 bg-gray-100 rounded-xl outline-none focus:ring-2 ring-yellow-400 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Qayerga?</label>
+                    <input type="text" placeholder="Borish manzilingiz..." class="w-full p-4 bg-gray-100 rounded-xl outline-none focus:ring-2 ring-yellow-400 transition">
+                </div>
+                <button type="button" onclick="alert('Buyurtmangiz qabul qilindi! Urus Taxi yo\'lga chiqdi.')" class="w-full py-4 yellow-gradient text-black font-bold rounded-xl text-lg shadow-lg hover:shadow-yellow-200 transition">
+                    Mashina qidirish
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="bg-black text-white py-12 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="text-2xl font-black italic">URUS TAXI</div>
+            <div class="text-gray-400 text-sm">
+                &copy; 2024 Urus Taxi. Barcha huquqlar himoyalangan.
+            </div>
+            <div class="flex space-x-6">
+                <a href="#" class="hover:text-yellow-400 text-xl"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="hover:text-yellow-400 text-xl"><i class="fab fa-telegram"></i></a>
+                <a href="#" class="hover:text-yellow-400 text-xl"><i class="fab fa-facebook"></i></a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+  </html>
