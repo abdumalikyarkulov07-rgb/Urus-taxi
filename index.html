@@ -3,86 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urus Taxi</title>
+    <title>Urus Taxi - Xarita bilan</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
+        #map { height: 350px; border-radius: 20px; z-index: 1; }
         .yellow-gradient { background: linear-gradient(135deg, #facc15, #eab308); }
-        body { background-color: #f3f4f6; font-family: sans-serif; }
+        body { background-color: #111; color: white; font-family: sans-serif; }
+        .card { background: #1a1a1a; border: 1px solid #333; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="p-4 md:p-10">
 
-    <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border-t-8 border-yellow-400">
+    <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
         
-        <div class="p-8 text-center bg-gray-900 text-white">
-            <h1 class="text-3xl font-black italic tracking-tighter">URUS <span class="text-yellow-400">TAXI</span></h1>
-            <p class="text-xs text-gray-400 mt-2 uppercase tracking-widest">Tezkor • Arzon • Qulay</p>
+        <div class="card p-8 rounded-[2rem] shadow-2xl">
+            <h1 class="text-3xl font-black mb-6 italic">URUS <span class="text-yellow-500">TAXI</span></h1>
+            
+            <div class="space-y-4 text-black">
+                <input type="text" id="from" placeholder="📍 Qayerdan?" class="w-full p-4 rounded-xl outline-none border-2 border-transparent focus:border-yellow-500">
+                <input type="text" id="to" placeholder="🏁 Qayerga?" class="w-full p-4 rounded-xl outline-none border-2 border-transparent focus:border-yellow-500">
+                <input type="tel" id="tel" value="+998" class="w-full p-4 rounded-xl outline-none border-2 border-transparent focus:border-yellow-500 font-bold">
+                
+                <div class="flex gap-2">
+                    <button onclick="setTarif('Ekonom')" class="flex-1 py-3 bg-gray-800 text-white rounded-xl border border-yellow-500 hover:bg-yellow-500 hover:text-black transition font-bold">Ekonom</button>
+                    <button onclick="setTarif('Biznes')" class="flex-1 py-3 bg-gray-800 text-white rounded-xl border border-yellow-500 hover:bg-yellow-500 hover:text-black transition font-bold">Biznes</button>
+                </div>
+
+                <button onclick="orderNow()" id="orderBtn" class="w-full py-5 yellow-gradient text-black font-black rounded-2xl text-xl uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition">
+                    Mashina chaqirish
+                </button>
+            </div>
+            <p id="msg" class="mt-4 text-center font-bold text-yellow-500"></p>
         </div>
 
-        <div class="p-8 space-y-5">
-            <div>
-                <label class="text-xs font-bold text-gray-500 ml-2">QAYERDAN?</label>
-                <input type="text" id="from" placeholder="Hozirgi manzilingiz" 
-                       class="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-200 outline-none focus:border-yellow-500 transition">
+        <div class="relative">
+            <div id="map" class="shadow-2xl border-4 border-gray-800"></div>
+            <div class="absolute bottom-4 left-4 right-4 bg-black/80 p-3 rounded-xl z-[1000] text-xs text-gray-300 border border-gray-700">
+                <i class="fas fa-info-circle mr-1"></i> Xarita ustiga bosing va manzilni belgilang.
             </div>
-
-            <div>
-                <label class="text-xs font-bold text-gray-500 ml-2">QAYERGA?</label>
-                <input type="text" id="to" placeholder="Borish manzilingiz" 
-                       class="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-200 outline-none focus:border-yellow-500 transition">
-            </div>
-
-            <div>
-                <label class="text-xs font-bold text-gray-500 ml-2">TEL RAQAM</label>
-                <input type="tel" id="tel" value="+998" 
-                       class="w-full mt-1 p-4 bg-gray-50 rounded-2xl border border-gray-200 outline-none focus:border-yellow-500 transition font-mono">
-            </div>
-
-            <button onclick="orderTaxi()" id="mainBtn" 
-                    class="w-full py-5 yellow-gradient text-black font-black rounded-2xl text-lg shadow-lg hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-wider">
-                Mashina chaqirish
-            </button>
-
-            <div id="statusBox" class="hidden p-4 rounded-xl text-center text-sm font-bold animate-bounce"></div>
         </div>
+
     </div>
 
     <script>
-        function orderTaxi() {
-            // Ma'lumotlarni olish
+        // Xaritani sozlash (Toshkent koordinatalari)
+        var map = L.map('map').setView([41.3111, 69.2797], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Marker (Xaritadagi belgi)
+        var marker = L.marker([41.3111, 69.2797], {draggable: true}).addTo(map);
+
+        // Xaritani bosganda manzilni olish
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            updateLocation(e.latlng.lat, e.latlng.lng);
+        });
+
+        marker.on('dragend', function(e) {
+            var pos = marker.getLatLng();
+            updateLocation(pos.lat, pos.lng);
+        });
+
+        function updateLocation(lat, lng) {
+            // Bu yerda koordinatani matnga aylantirish (Reverse Geocoding) mumkin
+            document.getElementById('from').value = "Koordinata: " + lat.toFixed(4) + ", " + lng.toFixed(4);
+        }
+
+        let selectedTarif = "Ekonom";
+        function setTarif(t) {
+            selectedTarif = t;
+            alert(t + " tarifi tanlandi!");
+        }
+
+        function orderNow() {
             const from = document.getElementById('from').value;
             const to = document.getElementById('to').value;
-            const tel = document.getElementById('tel').value;
-            const btn = document.getElementById('mainBtn');
-            const status = document.getElementById('statusBox');
+            const msg = document.getElementById('msg');
+            const btn = document.getElementById('orderBtn');
 
-            // Tekshirish
-            if(from === "" || to === "" || tel === "+998") {
-                status.classList.remove('hidden', 'bg-green-100', 'text-green-700');
-                status.classList.add('bg-red-100', 'text-red-700');
-                status.innerText = "Iltimos, hamma joyni to'ldiring! ⚠️";
+            if(!from || !to) {
+                msg.innerText = "Manzilni kiriting! ⚠️";
                 return;
             }
 
-            // Animatsiya boshlash
-            btn.innerText = "Mashina qidirilmoqda...";
+            btn.innerText = "HAYDOVCHI QIDIRILMOQDA...";
             btn.disabled = true;
-            btn.style.opacity = "0.7";
 
-            // 2 soniyadan keyin javob qaytarish
             setTimeout(() => {
-                status.classList.remove('hidden', 'bg-red-100', 'text-red-700');
-                status.classList.add('bg-green-100', 'text-green-700');
-                status.innerText = "Muvaffaqiyatli! Haydovchi yo'lga chiqdi. ✅";
-                
-                btn.innerText = "MASHINA TOPILDI!";
+                msg.innerHTML = "✅ Muvaffaqiyatli!<br>Sizga " + selectedTarif + " klassidagi oq Jentra yo'lga chiqdi.";
+                btn.innerText = "BUYURTMA BERILDI";
                 btn.classList.replace('yellow-gradient', 'bg-green-500');
-                btn.style.color = "white";
-
-                alert("URUS TAXI: Buyurtma qabul qilindi!\n\nManzil: " + from + " -> " + to + "\nTez orada haydovchi qo'ng'iroq qiladi.");
-            }, 2000);
+            }, 2500);
         }
     </script>
-
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </body>
-  </html>                                            
+</html>            
