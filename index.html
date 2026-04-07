@@ -4,142 +4,131 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google-site-verification" content="4dfe84bf52756542" />
-    <title>Urus Taxi - Live</title>
+    <title>Urus Taxi</title>
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;900&display=swap');
-        body { font-family: 'Outfit', sans-serif; background: #000; color: white; overflow-x: hidden; }
-        #map { height: 280px; width: 100%; border-radius: 24px; z-index: 1; filter: invert(0.9) hue-rotate(180deg); }
-        .glass { background: rgba(25, 25, 25, 0.95); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px); }
-        .input-box { width: 100%; padding: 14px; background: #1a1a1a; border-radius: 12px; border: 1px solid #333; color: white; outline: none; }
-        .input-box:focus { border-color: #facc15; }
-        .car-info { background: #facc15; color: black; border-radius: 15px; padding: 12px; display: none; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        body { background: #000; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 15px; }
+        .card { background: #111; padding: 20px; border-radius: 25px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #map { height: 280px; width: 100%; border-radius: 20px; margin-top: 15px; border: 1px solid #222; }
+        input, select { width: 100%; padding: 14px; margin-bottom: 12px; background: #222; border: 1px solid #333; border-radius: 12px; color: white; outline: none; transition: 0.3s; }
+        input:focus { border-color: #facc15; }
+        .btn { width: 100%; padding: 16px; background: #facc15; color: black; font-weight: 900; border-radius: 15px; border: none; cursor: pointer; text-transform: uppercase; font-size: 16px; }
+        .btn:active { transform: scale(0.98); }
+        .car-display { background: #facc15; color: black; padding: 12px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .nomer { background: #000; color: #fff; padding: 2px 8px; border-radius: 5px; font-family: monospace; font-weight: bold; border: 1px solid #444; }
     </style>
 </head>
-<body class="p-4">
+<body>
 
-    <div class="max-w-md mx-auto space-y-4">
-        <div class="glass p-6 rounded-[2.5rem] shadow-2xl space-y-4">
-            <h1 class="text-3xl font-black italic text-yellow-500 text-center tracking-tighter">URUS TAXI</h1>
-            
-            <div id="carDisplay" class="car-info">
-                <p class="text-[10px] font-bold uppercase opacity-70">Sizga biriktirilgan mashina:</p>
-                <div class="flex justify-between items-center">
-                    <span id="carName" class="font-black text-lg italic">Chevrolet Gentra</span>
-                    <span id="carNumber" class="bg-black text-white px-3 py-1 rounded text-sm font-bold border border-white/20">01 A 777 AA</span>
-                </div>
+    <div class="card">
+        <h1 class="text-2xl font-black italic text-yellow-500 text-center mb-4">URUS TAXI</h1>
+        
+        <div class="car-display">
+            <div>
+                <p class="text-[10px] uppercase font-bold opacity-70">Mashina:</p>
+                <span id="carName" class="font-black italic">Nexia 3 (Oq)</span>
             </div>
-
-            <div class="space-y-3">
-                <input type="text" id="name" placeholder="👤 Ismingiz" class="input-box">
-                <input type="text" id="from" placeholder="📍 Qayerdan? (Muzigalka)" class="input-box">
-                <input type="text" id="to" placeholder="🏁 Qayerga? (11-maktab)" class="input-box">
-                <input type="tel" id="phone" value="+998" class="input-box font-bold">
-                
-                <select id="tarif" onchange="updateCarInfo()" class="input-box font-bold text-yellow-500">
-                    <option value="Ekonom">🚕 Ekonom (Nexia 3)</option>
-                    <option value="Komfort">✨ Komfort (Gentra)</option>
-                    <option value="Biznes">🤵 Biznes (Malibu 2 / Urus)</option>
-                </select>
-
-                <button onclick="sendOrder()" id="btn" class="w-full py-5 bg-yellow-500 text-black font-black rounded-2xl uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition-all">
-                    Taksi Chaqirish
-                </button>
-            </div>
+            <span id="carNum" class="nomer text-sm">01 X 123 BA</span>
         </div>
 
-        <div id="map" class="border border-white/10 shadow-inner"></div>
-        <p class="text-[10px] text-center text-gray-500 font-bold uppercase tracking-widest">A nuqtani belgilang • GPS faol</p>
+        <input type="text" id="name" placeholder="👤 Ismingiz">
+        <input type="text" id="from" placeholder="📍 Qayerdan? (GPS...) ">
+        <input type="text" id="to" placeholder="🏁 Qayerga borasiz?">
+        <input type="tel" id="phone" value="+998">
+        
+        <select id="tarif" onchange="updateCar()">
+            <option value="Ekonom">🚕 Ekonom (Nexia 3)</option>
+            <option value="Komfort">✨ Komfort (Gentra)</option>
+            <option value="Biznes">🤵 Biznes (Malibu / Urus)</option>
+        </select>
+
+        <button class="btn" onclick="sendOrder()" id="orderBtn">Buyurtma berish</button>
     </div>
 
-    <script>
-        const tele = window.Telegram.WebApp;
-        tele.expand();
+    <div id="map"></div>
 
-        // 1. MASHINALAR BAZASI
-        const cars = {
+    <script>
+        // Telegram sozlamasi
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        const taxiData = {
             "Ekonom": { name: "Nexia 3 (Oq)", plate: "01 X 123 BA" },
-            "Komfort": { name: "Chevrolet Gentra (Qora)", plate: "01 Z 777 ZZ" },
-            "Biznes": { name: "Malibu 2 / Urus", plate: "01 U 001 RR" }
+            "Komfort": { name: "Gentra (Qora)", plate: "01 Z 777 ZZ" },
+            "Biznes": { name: "Malibu 2 (Jigarrang)", plate: "01 U 001 RR" }
         };
 
-        function updateCarInfo() {
+        function updateCar() {
             const tarif = document.getElementById('tarif').value;
-            const display = document.getElementById('carDisplay');
-            document.getElementById('carName').innerText = cars[tarif].name;
-            document.getElementById('carNumber').innerText = cars[tarif].plate;
-            display.style.display = "block";
+            document.getElementById('carName').innerText = taxiData[tarif].name;
+            document.getElementById('carNum').innerText = taxiData[tarif].plate;
         }
 
-        // 2. XARITA VA MARKER
+        // Xaritani yaratish
         var map = L.map('map').setView([41.3111, 69.2797], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        var markerA = L.marker([41.3111, 69.2797], {
-            draggable: true, 
-            icon: L.divIcon({html: '🟡', className: 'text-2xl', iconSize: [24, 24]})
-        }).addTo(map);
+        // A marker (Sariq nuqta)
+        var marker = L.marker([41.3111, 69.2797], {draggable: true}).addTo(map);
 
-        markerA.on('dragend', function() {
-            var pos = markerA.getLatLng();
+        marker.on('dragend', function() {
+            var pos = marker.getLatLng();
             document.getElementById('from').value = pos.lat.toFixed(5) + "," + pos.lng.toFixed(5);
         });
 
-        // 3. ANIQ GPS FUNKSIYASI
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(p => {
-                var lat = p.coords.latitude;
-                var lng = p.coords.longitude;
-                map.setView([lat, lng], 17);
-                markerA.setLatLng([lat, lng]);
-                document.getElementById('from').value = lat.toFixed(5) + "," + lng.toFixed(5);
-            }, () => { tele.showAlert("GPS-ni yoqing!"); }, { enableHighAccuracy: true });
+        // GPS orqali joyni aniqlash
+        function initGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    map.setView([lat, lng], 17);
+                    marker.setLatLng([lat, lng]);
+                    document.getElementById('from').value = lat.toFixed(5) + "," + lng.toFixed(5);
+                }, (err) => {
+                    console.log("GPS xatosi");
+                }, {enableHighAccuracy: true});
+            }
         }
+        window.onload = initGPS;
 
-        // 4. BOTGA YUBORISH
+        // Telegramga yuborish
         async function sendOrder() {
-            const token = "8645728789:AAGLlVoEmNy9YtuuzPiPQiFanFD1Z9uMgl4";
-            const chat_id = "8514630685";
+            const botToken = "8645728789:AAGLlVoEmNy9YtuuzPiPQiFanFD1Z9uMgl4";
+            const chatId = "8514630685";
             
-            const name = document.getElementById('name').value;
-            const from = document.getElementById('from').value;
-            const to = document.getElementById('to').value;
-            const phone = document.getElementById('phone').value;
-            const tarif = document.getElementById('tarif').value;
-            const car = cars[tarif];
+            const uName = document.getElementById('name').value;
+            const uFrom = document.getElementById('from').value;
+            const uTo = document.getElementById('to').value;
+            const uPhone = document.getElementById('phone').value;
+            const uTarif = document.getElementById('tarif').value;
+            const uCar = taxiData[uTarif];
 
-            if(!name || !from || !to) { tele.showAlert("Ma'lumotlarni to'ldiring!"); return; }
+            if(!uName || !uFrom || !uTo) {
+                tg.showAlert("Iltimos, barcha maydonlarni to'ldiring!");
+                return;
+            }
 
-            const lat = markerA.getLatLng().lat;
-            const lng = markerA.getLatLng().lng;
+            const lat = marker.getLatLng().lat;
+            const lng = marker.getLatLng().lng;
 
-            const text = `🚕 **YANGI BUYURTMA!**\n\n` +
-                         `👤 Mijoz: ${name}\n` +
-                         `📞 Tel: ${phone}\n` +
-                         `📍 Qayerdan: ${from}\n` +
-                         `🏁 Qayerga: ${to}\n` +
-                         `✨ Tarif: ${tarif}\n\n` +
-                         `🚘 Mashina: ${car.name}\n` +
-                         `🔢 Nomer: ${car.plate}\n\n` +
-                         `🛰 Lokatsiya: http://maps.google.com/maps?q=${lat},${lng}`;
+            // SIZ SO'RAGAN ANIQ FORMAT
+            const message = `🚕 **YANGI BUYURTMA!**\n\n` +
+                            `👤 Mijoz: ${uName}\n` +
+                            `📞 Tel: ${uPhone}\n` +
+                            `📍 Qayerdan: ${uFrom}\n` +
+                            `🏁 Qayerga: ${uTo}\n` +
+                            `✨ Tarif: ${uTarif}\n\n` +
+                            `🚘 Mashina: ${uCar.name}\n` +
+                            `🔢 Nomer: ${uCar.plate}\n\n` +
+                            `🛰 Lokatsiya: https://www.google.com/maps?q=${lat},${lng}`;
 
-            try {
-                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id, text, parse_mode: "Markdown" })
-                });
-                tele.showConfirm("Buyurtma qabul qilindi! Mashina: " + car.name);
-                document.getElementById('btn').innerText = "YUBORILDI ✅";
-            } catch (err) { tele.showAlert("Xato!"); }
-        }
-
-        // Mashina ma'lumotini srazu chiqarish
-        updateCarInfo();
-    </script>
-</body>
-</html>
+            const btn = document.getElementById('orderBtn');
+            btn.innerText = "YUBORILMOQDA...";
+            btn.disabled
