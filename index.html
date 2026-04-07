@@ -3,104 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urus Taxi - Xarita bilan</title>
+    <title>Urus Taxi - Jonli GPS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #map { height: 350px; border-radius: 20px; z-index: 1; }
+        #map { height: 400px; border-radius: 24px; z-index: 1; }
         .yellow-gradient { background: linear-gradient(135deg, #facc15, #eab308); }
-        body { background-color: #111; color: white; font-family: sans-serif; }
-        .card { background: #1a1a1a; border: 1px solid #333; }
+        body { background-color: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(234, 179, 8, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); } }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-10 flex items-center justify-center min-h-screen">
 
-    <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
+    <div class="max-w-6xl w-full grid md:grid-cols-2 gap-8 items-start">
         
-        <div class="card p-8 rounded-[2rem] shadow-2xl">
-            <h1 class="text-3xl font-black mb-6 italic">URUS <span class="text-yellow-500">TAXI</span></h1>
+        <div class="glass-card p-8 rounded-[2.5rem] shadow-2xl">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-4xl font-black italic text-yellow-500">URUS</h1>
+                <span class="bg-yellow-500 text-black px-3 py-1 rounded-lg text-xs font-bold uppercase">Live GPS</span>
+            </div>
             
-            <div class="space-y-4 text-black">
-                <input type="text" id="from" placeholder="📍 Qayerdan?" class="w-full p-4 rounded-xl outline-none border-2 border-transparent focus:border-yellow-500">
-                <input type="text" id="to" placeholder="🏁 Qayerga?" class="w-full p-4 rounded-xl outline-none border-2 border-transparent focus:border-yellow-500">
-                <input type="tel" id="tel" value="+998" class="w-full p-4 rounded-xl outline-none border-2 border-transparent focus:border-yellow-500 font-bold">
+            <div class="space-y-4">
+                <div class="relative">
+                    <span class="absolute left-4 top-4 text-yellow-500 text-xl">📍</span>
+                    <input type="text" id="from" placeholder="Sizning joylashuvingiz..." class="w-full p-4 pl-12 bg-slate-800 rounded-2xl outline-none border border-slate-700 focus:border-yellow-500 text-white">
+                </div>
                 
-                <div class="flex gap-2">
-                    <button onclick="setTarif('Ekonom')" class="flex-1 py-3 bg-gray-800 text-white rounded-xl border border-yellow-500 hover:bg-yellow-500 hover:text-black transition font-bold">Ekonom</button>
-                    <button onclick="setTarif('Biznes')" class="flex-1 py-3 bg-gray-800 text-white rounded-xl border border-yellow-500 hover:bg-yellow-500 hover:text-black transition font-bold">Biznes</button>
+                <div class="relative">
+                    <span class="absolute left-4 top-4 text-red-500 text-xl">🏁</span>
+                    <input type="text" id="to" placeholder="Qayerga boramiz?" class="w-full p-4 pl-12 bg-slate-800 rounded-2xl outline-none border border-slate-700 focus:border-yellow-500 text-white">
                 </div>
 
-                <button onclick="orderNow()" id="orderBtn" class="w-full py-5 yellow-gradient text-black font-black rounded-2xl text-xl uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition">
-                    Mashina chaqirish
+                <button onclick="getLocation()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Meni top (GPS)
+                </button>
+
+                <button onclick="confirmOrder()" class="w-full py-5 yellow-gradient text-black font-black rounded-2xl text-xl uppercase pulse transition-transform active:scale-95 mt-4">
+                    TAKSI CHAQIRISH
                 </button>
             </div>
-            <p id="msg" class="mt-4 text-center font-bold text-yellow-500"></p>
         </div>
 
-        <div class="relative">
-            <div id="map" class="shadow-2xl border-4 border-gray-800"></div>
-            <div class="absolute bottom-4 left-4 right-4 bg-black/80 p-3 rounded-xl z-[1000] text-xs text-gray-300 border border-gray-700">
-                <i class="fas fa-info-circle mr-1"></i> Xarita ustiga bosing va manzilni belgilang.
+        <div class="relative h-full">
+            <div id="map" class="shadow-2xl border-4 border-slate-800 min-h-[400px]"></div>
+            <div id="loader" class="absolute inset-0 bg-slate-900/80 z-[2000] hidden flex items-center justify-center rounded-[24px]">
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-yellow-500 mb-2"></div>
+                    <p class="text-yellow-500 font-bold">GPS qidirilmoqda...</p>
+                </div>
             </div>
         </div>
 
     </div>
 
     <script>
-        // Xaritani sozlash (Toshkent koordinatalari)
+        // Xaritani dastlab Toshkent markazida ochamiz
         var map = L.map('map').setView([41.3111, 69.2797], 13);
-
+        
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
+            attribution: '© Urus Taxi'
         }).addTo(map);
 
-        // Marker (Xaritadagi belgi)
         var marker = L.marker([41.3111, 69.2797], {draggable: true}).addTo(map);
 
-        // Xaritani bosganda manzilni olish
-        map.on('click', function(e) {
-            marker.setLatLng(e.latlng);
-            updateLocation(e.latlng.lat, e.latlng.lng);
-        });
+        // --- GPS FUNKSIYASI ---
+        function getLocation() {
+            const loader = document.getElementById('loader');
+            loader.classList.remove('hidden');
 
-        marker.on('dragend', function(e) {
-            var pos = marker.getLatLng();
-            updateLocation(pos.lat, pos.lng);
-        });
-
-        function updateLocation(lat, lng) {
-            // Bu yerda koordinatani matnga aylantirish (Reverse Geocoding) mumkin
-            document.getElementById('from').value = "Koordinata: " + lat.toFixed(4) + ", " + lng.toFixed(4);
-        }
-
-        let selectedTarif = "Ekonom";
-        function setTarif(t) {
-            selectedTarif = t;
-            alert(t + " tarifi tanlandi!");
-        }
-
-        function orderNow() {
-            const from = document.getElementById('from').value;
-            const to = document.getElementById('to').value;
-            const msg = document.getElementById('msg');
-            const btn = document.getElementById('orderBtn');
-
-            if(!from || !to) {
-                msg.innerText = "Manzilni kiriting! ⚠️";
-                return;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                alert("Brauzeringiz GPS-ni qo'llab-quvvatlamaydi.");
+                loader.classList.add('hidden');
             }
-
-            btn.innerText = "HAYDOVCHI QIDIRILMOQDA...";
-            btn.disabled = true;
-
-            setTimeout(() => {
-                msg.innerHTML = "✅ Muvaffaqiyatli!<br>Sizga " + selectedTarif + " klassidagi oq Jentra yo'lga chiqdi.";
-                btn.innerText = "BUYURTMA BERILDI";
-                btn.classList.replace('yellow-gradient', 'bg-green-500');
-            }, 2500);
         }
+
+        function showPosition(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const loader = document.getElementById('loader');
+
+            // Xaritani yangilash
+            map.setView([lat, lng], 16);
+            marker.setLatLng([lat, lng]);
+            
+            // Inputga koordinatani yozish
+            document.getElementById('from').value = `Mening joylashuvim (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+            
+            loader.classList.add('hidden');
+        }
+
+        function showError(error) {
+            const loader = document.getElementById('loader');
+            loader.classList.add('hidden');
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("Iltimos, GPS ruxsatini yoqing.");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("Joylashuv aniqlanmadi.");
+                    break;
+                case error.TIMEOUT:
+                    alert("Vaqt tugadi.");
+                    break;
+            }
+        }
+
+        // Marker surilganda manzilni yangilash
+        marker.on('dragend', function() {
+            var pos = marker.getLatLng();
+            document.getElementById('from').value = `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`;
+        });
+
+        function confirmOrder() {
+            const to = document.getElementById('to').value;
+            if(!to) { alert("Borish manzilingizni yozing!"); return; }
+            alert("Urus Taxi: Buyurtma qabul qilindi! Haydovchi siz tomonga yo'l oldi.");
+        }
+
+        // Sahifa yuklanganda avtomatik GPS-ni so'rash
+        window.onload = getLocation;
     </script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </body>
-</html>            
+</html>  
