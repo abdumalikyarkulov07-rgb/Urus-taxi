@@ -2,62 +2,106 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google-site-verification" content="4dfe84bf52756542" />
-    
-    <title>Urus Taxi - Toshkent</title>
+    <title>Urus Taxi - Live</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;900&display=swap');
-        body { font-family: 'Outfit', sans-serif; background: #050505; color: white; }
-        #map { height: 400px; border-radius: 25px; z-index: 1; filter: invert(0.9) hue-rotate(180deg); }
-        .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .yellow-btn { background: #facc15; color: black; font-weight: 900; transition: 0.3s; cursor: pointer; }
-        input, select { width: 100%; padding: 14px; background: #111; border-radius: 12px; border: 1px solid #222; outline: none; color: white; }
+        body { font-family: 'Outfit', sans-serif; background: #000; color: white; overflow-x: hidden; }
+        #map { height: 280px; width: 100%; border-radius: 24px; z-index: 1; filter: invert(0.9) hue-rotate(180deg); }
+        .glass { background: rgba(25, 25, 25, 0.95); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px); }
+        .input-box { width: 100%; padding: 14px; background: #1a1a1a; border-radius: 12px; border: 1px solid #333; color: white; outline: none; }
+        .input-box:focus { border-color: #facc15; }
+        .car-info { background: #facc15; color: black; border-radius: 15px; padding: 12px; display: none; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
-<body class="p-4 md:p-10 flex flex-col items-center">
+<body class="p-4">
 
-    <div class="max-w-5xl w-full grid md:grid-cols-2 gap-6">
-        <div class="glass p-6 rounded-[2.5rem] space-y-4">
-            <h1 class="text-3xl font-black italic text-yellow-500 mb-4">URUS TAXI</h1>
+    <div class="max-w-md mx-auto space-y-4">
+        <div class="glass p-6 rounded-[2.5rem] shadow-2xl space-y-4">
+            <h1 class="text-3xl font-black italic text-yellow-500 text-center tracking-tighter">URUS TAXI</h1>
             
-            <input type="text" id="name" placeholder="Ismingiz">
-            <input type="text" id="from" placeholder="📍 A nuqta (Qayerdan)">
-            <input type="text" id="to" placeholder="🏁 B nuqta (Qayerga)">
-            <input type="tel" id="phone" value="+998">
-            
-            <select id="tarif">
-                <option value="Ekonom">🚕 Ekonom</option>
-                <option value="Komfort">✨ Komfort</option>
-                <option value="Biznes">🤵 Biznes</option>
-            </select>
+            <div id="carDisplay" class="car-info">
+                <p class="text-[10px] font-bold uppercase opacity-70">Sizga biriktirilgan mashina:</p>
+                <div class="flex justify-between items-center">
+                    <span id="carName" class="font-black text-lg italic">Chevrolet Gentra</span>
+                    <span id="carNumber" class="bg-black text-white px-3 py-1 rounded text-sm font-bold border border-white/20">01 A 777 AA</span>
+                </div>
+            </div>
 
-            <button onclick="sendToTelegram()" id="btn" class="w-full py-4 yellow-btn rounded-xl uppercase">
-                Buyurtma Berish
-            </button>
+            <div class="space-y-3">
+                <input type="text" id="name" placeholder="👤 Ismingiz" class="input-box">
+                <input type="text" id="from" placeholder="📍 Qayerdan? (Muzigalka)" class="input-box">
+                <input type="text" id="to" placeholder="🏁 Qayerga? (11-maktab)" class="input-box">
+                <input type="tel" id="phone" value="+998" class="input-box font-bold">
+                
+                <select id="tarif" onchange="updateCarInfo()" class="input-box font-bold text-yellow-500">
+                    <option value="Ekonom">🚕 Ekonom (Nexia 3)</option>
+                    <option value="Komfort">✨ Komfort (Gentra)</option>
+                    <option value="Biznes">🤵 Biznes (Malibu 2 / Urus)</option>
+                </select>
+
+                <button onclick="sendOrder()" id="btn" class="w-full py-5 bg-yellow-500 text-black font-black rounded-2xl uppercase shadow-lg shadow-yellow-500/20 active:scale-95 transition-all">
+                    Taksi Chaqirish
+                </button>
+            </div>
         </div>
 
-        <div class="relative">
-            <div id="map" class="border border-white/5 shadow-2xl"></div>
-            <p class="text-[10px] text-gray-500 mt-2 text-center">🟡 A nuqta | 🔴 B nuqta</p>
-        </div>
+        <div id="map" class="border border-white/10 shadow-inner"></div>
+        <p class="text-[10px] text-center text-gray-500 font-bold uppercase tracking-widest">A nuqtani belgilang • GPS faol</p>
     </div>
 
     <script>
+        const tele = window.Telegram.WebApp;
+        tele.expand();
+
+        // 1. MASHINALAR BAZASI
+        const cars = {
+            "Ekonom": { name: "Nexia 3 (Oq)", plate: "01 X 123 BA" },
+            "Komfort": { name: "Chevrolet Gentra (Qora)", plate: "01 Z 777 ZZ" },
+            "Biznes": { name: "Malibu 2 / Urus", plate: "01 U 001 RR" }
+        };
+
+        function updateCarInfo() {
+            const tarif = document.getElementById('tarif').value;
+            const display = document.getElementById('carDisplay');
+            document.getElementById('carName').innerText = cars[tarif].name;
+            document.getElementById('carNumber').innerText = cars[tarif].plate;
+            display.style.display = "block";
+        }
+
+        // 2. XARITA VA MARKER
         var map = L.map('map').setView([41.3111, 69.2797], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        var markerA = L.marker([41.3111, 69.2797], {draggable: true, icon: L.divIcon({html: '🟡', className: 'text-2xl'})}).addTo(map);
-        var markerB = L.marker([41.3150, 69.2850], {draggable: true, icon: L.divIcon({html: '🔴', className: 'text-2xl'})}).addTo(map);
+        var markerA = L.marker([41.3111, 69.2797], {
+            draggable: true, 
+            icon: L.divIcon({html: '🟡', className: 'text-2xl', iconSize: [24, 24]})
+        }).addTo(map);
 
-        markerA.on('dragend', () => { document.getElementById('from').value = markerA.getLatLng().lat.toFixed(5) + "," + markerA.getLatLng().lng.toFixed(5); });
-        markerB.on('dragend', () => { document.getElementById('to').value = markerB.getLatLng().lat.toFixed(5) + "," + markerB.getLatLng().lng.toFixed(5); });
+        markerA.on('dragend', function() {
+            var pos = markerA.getLatLng();
+            document.getElementById('from').value = pos.lat.toFixed(5) + "," + pos.lng.toFixed(5);
+        });
 
-        async function sendToTelegram() {
+        // 3. ANIQ GPS FUNKSIYASI
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(p => {
+                var lat = p.coords.latitude;
+                var lng = p.coords.longitude;
+                map.setView([lat, lng], 17);
+                markerA.setLatLng([lat, lng]);
+                document.getElementById('from').value = lat.toFixed(5) + "," + lng.toFixed(5);
+            }, () => { tele.showAlert("GPS-ni yoqing!"); }, { enableHighAccuracy: true });
+        }
+
+        // 4. BOTGA YUBORISH
+        async function sendOrder() {
             const token = "8645728789:AAGLlVoEmNy9YtuuzPiPQiFanFD1Z9uMgl4";
             const chat_id = "8514630685";
             
@@ -66,12 +110,22 @@
             const to = document.getElementById('to').value;
             const phone = document.getElementById('phone').value;
             const tarif = document.getElementById('tarif').value;
-            const btn = document.getElementById('btn');
+            const car = cars[tarif];
 
-            if(!name || !from || !to) { alert("To'ldiring!"); return; }
+            if(!name || !from || !to) { tele.showAlert("Ma'lumotlarni to'ldiring!"); return; }
 
-            btn.innerText = "YUBORILMOQDA...";
-            const text = `🚕 URUS TAXI\n👤 Mijoz: ${name}\n📞 Tel: ${phone}\n✨ Tarif: ${tarif}\n📍 A: ${from}\n🏁 B: ${to}`;
+            const lat = markerA.getLatLng().lat;
+            const lng = markerA.getLatLng().lng;
+
+            const text = `🚕 **YANGI BUYURTMA!**\n\n` +
+                         `👤 Mijoz: ${name}\n` +
+                         `📞 Tel: ${phone}\n` +
+                         `📍 Qayerdan: ${from}\n` +
+                         `🏁 Qayerga: ${to}\n` +
+                         `✨ Tarif: ${tarif}\n\n` +
+                         `🚘 Mashina: ${car.name}\n` +
+                         `🔢 Nomer: ${car.plate}\n\n` +
+                         `🛰 Lokatsiya: http://maps.google.com/maps?q=${lat},${lng}`;
 
             try {
                 await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -79,10 +133,13 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chat_id, text, parse_mode: "Markdown" })
                 });
-                alert("Buyurtma yuborildi! ✅");
-                btn.innerText = "YUBORILDI";
-            } catch (err) { alert("Xato!"); btn.innerText = "XATO"; }
+                tele.showConfirm("Buyurtma qabul qilindi! Mashina: " + car.name);
+                document.getElementById('btn').innerText = "YUBORILDI ✅";
+            } catch (err) { tele.showAlert("Xato!"); }
         }
+
+        // Mashina ma'lumotini srazu chiqarish
+        updateCarInfo();
     </script>
 </body>
 </html>
