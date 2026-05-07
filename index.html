@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
+    <meta name="google-site-verification" content="4dfe84bf52756542" />
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Urus Taxi - Live System</title>
@@ -25,14 +27,14 @@
             <h1 class="text-3xl font-black italic text-yellow-500 mb-4">URUS TAXI</h1>
             
             <input type="text" id="name" placeholder="Ismingiz">
-            <input type="text" id="from" placeholder="📍 Qayerdan (Xaritadan tanlang)">
-            <input type="text" id="to" placeholder="🏁 Qayerga borasiz?">
+            <input type="text" id="from" placeholder=" Qayerdan (Xaritadan tanlang)">
+            <input type="text" id="to" placeholder=" Qayerga borasiz?">
             <input type="tel" id="phone" value="+998">
             
             <select id="tarif">
-                <option value="Ekonom">🚕 Ekonom - 4 000 so'm</option>
-                <option value="Komfort">✨ Komfort - 7 000 so'm</option>
-                <option value="Biznes">🤵 Biznes - 15 000 so'm</option>
+                <option value="Ekonom"> Ekonom - 4 000 so'm</option>
+                <option value="Komfort"> Komfort - 7 000 so'm</option>
+                <option value="Biznes"> Biznes - 15 000 so'm</option>
             </select>
 
             <button onclick="sendToTelegram()" id="btn" class="w-full py-4 yellow-btn rounded-xl uppercase">
@@ -48,7 +50,6 @@
     </div>
 
     <script>
-        // Xarita sozlash
         var map = L.map('map').setView([41.3111, 69.2797], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         var marker = L.marker([41.3111, 69.2797], {draggable: true}).addTo(map);
@@ -58,10 +59,9 @@
             document.getElementById('from').value = pos.lat.toFixed(5) + ", " + pos.lng.toFixed(5);
         });
 
-        // ASOSIY FUNKSIYA
         async function sendToTelegram() {
             const token = "8645728789:AAGLlVoEmNy9YtuuzPiPQiFanFD1Z9uMgl4";
-            const chat_id = "8514630685"; // SIZNING YANGI ID RAQAMINGIZ
+            const chat_id = "8514630685"; 
             
             const name = document.getElementById('name').value;
             const from = document.getElementById('from').value;
@@ -71,7 +71,7 @@
             const btn = document.getElementById('btn');
             const status = document.getElementById('status');
 
-            if(!name || !from || !to) {
+            if(!name  !from  !to) {
                 alert("Iltimos, hamma kataklarni to'ldiring!");
                 return;
             }
@@ -79,13 +79,8 @@
             btn.innerText = "YUBORILMOQDA...";
             btn.disabled = true;
 
-            const text = `🚕 **YANGI BUYURTMA!**\n\n` +
-                         `👤 Mijoz: ${name}\n` +
-                         `📞 Tel: ${phone}\n` +
-                         `📍 Qayerdan: ${from}\n` +
-                         `🏁 Qayerga: ${to}\n` +
-                         `✨ Tarif: ${tarif}\n\n` +
-                         `🛰 Lokatsiya: https://www.google.com/maps?q=${from.replace(" ", "")}`;
+            const text = `**YANGI BUYURTMA!**\n\nMijoz: ${name}\nTel: ${phone}\nQayerdan: ${from}\nQayerga: ${to}\nTarif: ${tarif}\n\nLokatsiya:
+            https://www.google.com/maps?q=${from.replace(" ", "")}`;
 
             try {
                 const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -97,11 +92,12 @@
                         parse_mode: "Markdown"
                     })
                 });
+     
 
-                const result = await response.json();
+             const result = await response.json();
 
                 if(result.ok) {
-                    status.innerText = "Muvaffaqiyatli! ✅ Xabar Telegramga bordi.";
+                    status.innerText = "Muvaffaqiyatli! Xabar Telegramga bordi.";
                     status.style.color = "#facc15";
                     btn.innerText = "YUBORILDI";
                 } else {
@@ -111,13 +107,12 @@
                     btn.innerText = "QAYTA URINISH";
                 }
             } catch (err) {
-                status.innerText = "Internet xatosi! ❌";
+                status.innerText = "Internet xatosi!";
                 btn.disabled = false;
                 btn.innerText = "QAYTA URINISH";
             }
         }
 
-        // Avto-GPS
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(p => {
                 const lat = p.coords.latitude;
@@ -129,4 +124,4 @@
         }
     </script>
 </body>
-                </html>
+</html>
