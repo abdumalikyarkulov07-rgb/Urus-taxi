@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta name="google-site-verification" content="4dfe84bf52756542" />
+    <meta name="google-site-verification" content="0m4MtUCIaQ0X2xyLmJ1ts5nWfTDhVR58FgqDMLfCkLo" />
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Urus Taxi</title>
@@ -9,36 +10,38 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { background: #050505; color: white; font-family: sans-serif; }
+        body { background: #050505; color: white; font-family: sans-serif; margin: 0; }
         #map { height: 300px; border-radius: 15px; margin: 10px 0; z-index: 1; }
         .glass { background: #111; border: 1px solid #222; padding: 20px; border-radius: 20px; }
-        input, select { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; }
-        .btn { width: 100%; padding: 15px; background: #facc15; color: black; font-weight: bold; border-radius: 10px; cursor: pointer; border: none; }
+        input, select { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; outline: none; }
+        input:focus { border-color: #facc15; }
+        .btn { width: 100%; padding: 15px; background: #facc15; color: black; font-weight: bold; border-radius: 10px; cursor: pointer; border: none; text-transform: uppercase; }
     </style>
 </head>
 <body class="p-5">
 
     <div class="max-w-md mx-auto glass">
-        <h1 class="text-2xl font-bold text-yellow-500 text-center">URUS TAXI</h1>
+        <h1 class="text-2xl font-bold text-yellow-500 text-center mb-4">URUS TAXI</h1>
         
         <input type="text" id="name" placeholder="Ismingiz">
         <input type="tel" id="phone" value="+998">
         <input type="text" id="to" placeholder="Qayerga borasiz?">
         
         <div id="map"></div>
-        <input type="text" id="coords" placeholder="Lokatsiya (Xaritadan tanlang)" readonly>
+        <input type="text" id="coords" placeholder="Lokatsiya tanlanmagan" readonly>
 
         <select id="tarif">
-            <option value="Ekonom">Ekonom</option>
-            <option value="Komfort">Komfort</option>
+            <option value="Ekonom">Ekonom - 4 000 so'm</option>
+            <option value="Komfort">Komfort - 7 000 so'm</option>
+            <option value="Biznes">Biznes - 15 000 so'm</option>
         </select>
 
-        <button onclick="order()" id="mainBtn" class="btn">TAKSI CHAQIRISH</button>
-        <p id="msg" class="text-center mt-2 text-sm"></p>
+        <button onclick="order()" id="mainBtn" class="btn">Taksi Chaqirish</button>
+        <p id="msg" class="text-center mt-2 text-sm font-bold"></p>
     </div>
 
     <script>
-        // 1. Xaritani yuklash
+        // 1. Xaritani sozlash
         var map = L.map('map').setView([41.3111, 69.2797], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         var marker = L.marker([41.3111, 69.2797], {draggable: true}).addTo(map);
@@ -48,7 +51,7 @@
             document.getElementById('coords').value = p.lat.toFixed(5) + "," + p.lng.toFixed(5);
         });
 
-        // 2. Buyurtma berish
+        // 2. Buyurtma berish (Telegram + GPS)
         async function order() {
             const token = "8645728789:AAGLlVoEmNy9YtuuzPiPQiFanFD1Z9uMgl4";
             const chat_id = "8514630685";
@@ -59,31 +62,34 @@
             const c = document.getElementById('coords').value;
             const trf = document.getElementById('tarif').value;
             const btn = document.getElementById('mainBtn');
+            const msg = document.getElementById('msg');
 
-            if(!n || !t || !c) { alert("Ma'lumotlarni to'ldiring!"); return; }
+            if(!n || !t || !c) { alert("Iltimos, ma'lumotlarni to'ldiring!"); return; }
 
             btn.disabled = true;
             btn.innerText = "YUBORILMOQDA...";
 
-            const txt = `🚖 BUYURTMA\n👤: ${n}\n📞: ${p}\n📍: ${t}\n💰: ${trf}`;
+            const txt = `🚖 **YANGI BUYURTMA!**\n\n👤 Mijoz: ${n}\n📞 Tel: ${p}\n📍 Borish manzili: ${t}\n💰 Tarif: ${trf}`;
             const latlng = c.split(',');
 
             try {
-                // Xabar yuborish
+                // Ma'lumotlarni yuborish
                 await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(txt)}&parse_mode=Markdown`);
                 
-                // GPS yuborish
+                // GPS Lokatsiyani yuborish
                 await fetch(`https://api.telegram.org/bot${token}/sendLocation?chat_id=${chat_id}&latitude=${latlng[0]}&longitude=${latlng[1]}`);
 
-                document.getElementById('msg').innerText = "Muvaffaqiyatli!";
+                msg.innerText = "Muvaffaqiyatli! Botga xabar bordi.";
+                msg.style.color = "#facc15";
                 btn.innerText = "YUBORILDI";
             } catch (e) {
-                alert("Xato!");
+                alert("Internetda xatolik!");
                 btn.disabled = false;
+                btn.innerText = "QAYTA URINISH";
             }
         }
 
-        // Avto-lokatsiya
+        // Avto-lokatsiya (GPS)
         if(navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
                 var lt = pos.coords.latitude, ln = pos.coords.longitude;
