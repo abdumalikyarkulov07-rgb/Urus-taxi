@@ -4,103 +4,92 @@
     <meta name="google-site-verification" content="4dfe84bf52756542" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urus Taxi - Live System</title>
+    <title>Urus Taxi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;900&display=swap');
-        body { font-family: 'Outfit', sans-serif; background: #050505; color: white; }
-        #map { height: 350px; border-radius: 25px; z-index: 1; filter: invert(0.9) hue-rotate(180deg); }
-        .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
-        .yellow-btn { background: #facc15; color: black; font-weight: 900; transition: 0.3s; cursor: pointer; }
-        .yellow-btn:hover { background: #eab308; transform: scale(1.02); }
-        input, select { width: 100%; padding: 14px; background: #111; border-radius: 12px; border: 1px solid #222; outline: none; color: white; font-size: 14px; }
-        input:focus { border-color: #facc15; }
+        body { background: #050505; color: white; font-family: sans-serif; }
+        #map { height: 300px; border-radius: 15px; margin: 10px 0; z-index: 1; }
+        .glass { background: #111; border: 1px solid #222; padding: 20px; border-radius: 20px; }
+        input, select { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; }
+        .btn { width: 100%; padding: 15px; background: #facc15; color: black; font-weight: bold; border-radius: 10px; cursor: pointer; border: none; }
     </style>
 </head>
-<body class="p-4 md:p-10 flex flex-col items-center">
+<body class="p-5">
 
-    <div class="max-w-4xl w-full grid md:grid-cols-2 gap-6">
-        <div class="glass p-6 rounded-[2rem] space-y-4">
-            <h1 class="text-3xl font-black italic text-yellow-500 mb-4">URUS TAXI</h1>
-            <input type="text" id="name" placeholder="Ismingiz">
-            <input type="text" id="from" placeholder="Qayerdan (Koordinata)" readonly>
-            <input type="text" id="to" placeholder="Qayerga borasiz?">
-            <input type="tel" id="phone" value="+998">
-            <select id="tarif">
-                <option value="Ekonom">Ekonom - 4 000 so'm</option>
-                <option value="Komfort">Komfort - 7 000 so'm</option>
-                <option value="Biznes">Biznes - 15 000 so'm</option>
-            </select>
-            <button onclick="sendOrder()" id="btn" class="w-full py-4 yellow-btn rounded-xl uppercase">Taksi Chaqirish</button>
-            <p id="status" class="text-center text-xs font-bold mt-2"></p>
-        </div>
-        <div class="relative">
-            <div id="map" class="border border-white/5"></div>
-            <p class="text-[10px] text-gray-500 mt-2 text-center">Xaritadagi nuqtani kerakli joyga suring</p>
-        </div>
+    <div class="max-w-md mx-auto glass">
+        <h1 class="text-2xl font-bold text-yellow-500 text-center">URUS TAXI</h1>
+        
+        <input type="text" id="name" placeholder="Ismingiz">
+        <input type="tel" id="phone" value="+998">
+        <input type="text" id="to" placeholder="Qayerga borasiz?">
+        
+        <div id="map"></div>
+        <input type="text" id="coords" placeholder="Lokatsiya (Xaritadan tanlang)" readonly>
+
+        <select id="tarif">
+            <option value="Ekonom">Ekonom</option>
+            <option value="Komfort">Komfort</option>
+        </select>
+
+        <button onclick="order()" id="mainBtn" class="btn">TAKSI CHAQIRISH</button>
+        <p id="msg" class="text-center mt-2 text-sm"></p>
     </div>
 
     <script>
+        // 1. Xaritani yuklash
         var map = L.map('map').setView([41.3111, 69.2797], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         var marker = L.marker([41.3111, 69.2797], {draggable: true}).addTo(map);
 
         marker.on('dragend', function() {
-            var pos = marker.getLatLng();
-            document.getElementById('from').value = pos.lat.toFixed(5) + "," + pos.lng.toFixed(5);
+            var p = marker.getLatLng();
+            document.getElementById('coords').value = p.lat.toFixed(5) + "," + p.lng.toFixed(5);
         });
 
-        async function sendOrder() {
+        // 2. Buyurtma berish
+        async function order() {
             const token = "8645728789:AAGLlVoEmNy9YtuuzPiPQiFanFD1Z9uMgl4";
             const chat_id = "8514630685";
             
-            const name = document.getElementById('name').value;
-            const from = document.getElementById('from').value;
-            const to = document.getElementById('to').value;
-            const phone = document.getElementById('phone').value;
-            const tarif = document.getElementById('tarif').value;
-            const btn = document.getElementById('btn');
+            const n = document.getElementById('name').value;
+            const p = document.getElementById('phone').value;
+            const t = document.getElementById('to').value;
+            const c = document.getElementById('coords').value;
+            const trf = document.getElementById('tarif').value;
+            const btn = document.getElementById('mainBtn');
 
-            if(!name  !from  !to) { alert("To'ldiring!"); return; }
+            if(!n || !t || !c) { alert("Ma'lumotlarni to'ldiring!"); return; }
 
-            btn.innerText = "YUBORILMOQDA...";
             btn.disabled = true;
+            btn.innerText = "YUBORILMOQDA...";
 
-            const text = 🚖 **YANGI BUYURTMA!**\n\n👤 Mijoz: ${name}\n📞 Tel: ${phone}\n📍 Qayerga: ${to}\n💰 Tarif: ${tarif};
-            const [lat, lng] = from.split(',');
+            const txt = `🚖 BUYURTMA\n👤: ${n}\n📞: ${p}\n📍: ${t}\n💰: ${trf}`;
+            const latlng = c.split(',');
 
             try {
-                // 1. Ma'lumotlarni yuborish
-                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                    method: 'POST',
-                    headers:{'Content-Type': 'application/json'},
-                    body: JSON.stringify({ chat_id, text, parse_mode: "Markdown" })
-                });
+                // Xabar yuborish
+                await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(txt)}&parse_mode=Markdown`);
+                
+                // GPS yuborish
+                await fetch(`https://api.telegram.org/bot${token}/sendLocation?chat_id=${chat_id}&latitude=${latlng[0]}&longitude=${latlng[1]}`);
 
-                // 2. GPS Lokatsiyani yuborish
-                await fetch(`https://api.telegram.org/bot${token}/sendLocation`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ chat_id, latitude: lat, longitude: lng })
-                });
-
-                document.getElementById('status').innerText = "Muvaffaqiyatli yuborildi!";
+                document.getElementById('msg').innerText = "Muvaffaqiyatli!";
                 btn.innerText = "YUBORILDI";
             } catch (e) {
-                alert("Xato yuz berdi!");
+                alert("Xato!");
                 btn.disabled = false;
-                btn.innerText = "QAYTA URINISH";
             }
         }
 
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(p => {
-                const lat = p.coords.latitude, lng = p.coords.longitude;
-                map.setView([lat, lng], 15);
-                marker.setLatLng([lat, lng]);
-                document.getElementById('from').value = lat.toFixed(5) + "," + lng.toFixed(5);
+        // Avto-lokatsiya
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                var lt = pos.coords.latitude, ln = pos.coords.longitude;
+                map.setView([lt, ln], 15);
+                marker.setLatLng([lt, ln]);
+                document.getElementById('coords').value = lt.toFixed(5) + "," + ln.toFixed(5);
             });
         }
     </script>
